@@ -15,7 +15,8 @@ public class PlayerMovement : MonoBehaviour,IPlayerActions
     [Tooltip("How high the player jumps")]
     [SerializeField] float jumpSpeed;
     [SerializeField] float climbSpeed;
-
+    [SerializeField]GroundChecker groundChecker;
+    [SerializeField] WallChecker wallChecker;
 
 
     //private fields
@@ -25,7 +26,7 @@ public class PlayerMovement : MonoBehaviour,IPlayerActions
     CapsuleCollider2D playerCollider;
     Vector2 moveInput = Vector2.zero;
     float startGravityScale;
-
+    bool inAir;
     //Animator hashes
     int isRunningHash = Animator.StringToHash("isRunning");
     int isClimbingHash = Animator.StringToHash("isClimbing");
@@ -36,6 +37,7 @@ public class PlayerMovement : MonoBehaviour,IPlayerActions
         playerRb = GetComponent<Rigidbody2D>();
         playerAnimator = GetComponent<Animator>();
         playerCollider = GetComponent<CapsuleCollider2D>();
+        
     }
     private void Start()
     {
@@ -51,6 +53,14 @@ public class PlayerMovement : MonoBehaviour,IPlayerActions
     private void OnDisable()
     {
         actions.Disable();
+    }
+
+    private void Update()
+    {
+        if(groundChecker.isGrounded == false)
+        {
+            inAir = false;
+        }
     }
 
     private void FixedUpdate()
@@ -122,14 +132,17 @@ public class PlayerMovement : MonoBehaviour,IPlayerActions
     public void OnJump(InputAction.CallbackContext context)
     {
         //dealing with double jump
-        if (!playerCollider.IsTouchingLayers(LayerMask.GetMask("Ground")))
+        if (!groundChecker.isGrounded && wallChecker.wallToRight == false && wallChecker.wallToLeft ==false)
         {
             return;
         }
 
         if(context.action.IsPressed())
         {
-            playerRb.velocity += new Vector2(0f, jumpSpeed);
+              if(!groundChecker.isGrounded) { return; }
+            
+               playerRb.velocity += new Vector2(0f, jumpSpeed);
+            
         }
     }
 
